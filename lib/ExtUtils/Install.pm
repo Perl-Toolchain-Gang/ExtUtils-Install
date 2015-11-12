@@ -425,40 +425,22 @@ relative paths with C<..> in them. But for our purposes it should work ok
 
 
 sub _can_write_dir {
-    my $dir=shift;
+    my $dir = shift;
     return
         unless defined $dir and length $dir;
-
-    my ($vol, $dirs, $file) = File::Spec->splitpath($dir,1);
-    my @dirs = File::Spec->splitdir($dirs);
-    unshift @dirs, File::Spec->curdir
-        unless File::Spec->file_name_is_absolute($dir);
-
-    my $path='';
     my @make;
-    while (@dirs) {
-        if (_Is_VMS) {
-            $dir = File::Spec->catdir($vol,@dirs);
-        }
-        else {
-            $dir = File::Spec->catdir(@dirs);
-            $dir = File::Spec->catpath($vol,$dir,'')
-                    if defined $vol and length $vol;
-        }
-        next if ( $dir eq $path );
-        if ( ! -e $dir ) {
-            unshift @make,$dir;
-            next;
-        }
-        if ( _have_write_access($dir) ) {
-            return 1,$dir,@make
-        } else {
-            return 0,$dir,@make
-        }
-    } continue {
-        pop @dirs;
+    until ( -e $dir ) {
+        unshift @make, $dir;
+        my $next_dir = dirname($dir);
+        return 0
+            if $next_dir eq $dir;
+        $dir = $next_dir;
     }
-    return 0;
+    if ( _have_write_access($dir) ) {
+        return 1,$dir,@make
+    } else {
+        return 0,$dir,@make
+    }
 }
 
 =pod
@@ -486,10 +468,14 @@ sub _mkpath {
         printf "mkpath(%s,%d,%#o)\n", $dir, $show, $mode;
     }
     if (!$dry_run) {
-        if ( ! eval { File::Path::mkpath($dir,$show,$mode); 1 } ) {
-            _choke("Can't create '$dir'","$@");
+        my @created;
+        eval {
+            @created = File::Path::mkpath($dir,$show,$mode);
+            1;
+        } or _choke("Can't create '$dir'","$@");
+        if (@created) {
+            return;
         }
-
     }
     my ($can,$root,@make)=_can_write_dir($dir);
     if (!$can) {
