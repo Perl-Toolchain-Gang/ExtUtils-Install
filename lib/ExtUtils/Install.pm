@@ -1214,7 +1214,7 @@ sub pm_to_blib {
         my $need_filtering = defined $pm_filter && length $pm_filter &&
                              $from =~ /\.pm$/;
 
-        if (!$need_filtering && 0 == _compare($from,$to)) {
+        if (!$need_filtering && !( -e $to ? _compare($from,$to) : 1 )) {
             print "Skip $to (unchanged)\n" unless $INSTALL_QUIET;
             next;
         }
