@@ -1,7 +1,6 @@
 ExtUtils-Install
 
-Install perl modules into the source tree. Used by ExtUtils::MakeMaker and
-Module::Build.
+Install perl modules into the source tree. Used by ExtUtils::MakeMaker.
 
 INSTALLATION
 
