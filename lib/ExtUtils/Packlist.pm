@@ -5,7 +5,7 @@ use strict;
 use Carp qw();
 use Config;
 use vars qw($VERSION $Relocations);
-$VERSION = '2.10';
+$VERSION = '2.11';
 $VERSION = eval $VERSION;
 
 # Used for generating filehandle globs.  IO::File might not be available!
@@ -154,11 +154,16 @@ sub write($;$)
 {
 my ($self, $packfile) = @_;
 $self = tied(%$self) || $self;
+my $fh;
+if (ref $packfile) {
+  $fh= $packfile;
+} else {
 if (defined($packfile)) { $self->{packfile} = $packfile; }
 else { $packfile = $self->{packfile}; }
 Carp::croak("No packlist filename specified") if (! defined($packfile));
-my $fh = mkfh();
+$fh = mkfh();
 open($fh, ">$packfile") || Carp::croak("Can't open file $packfile: $!");
+}
 foreach my $key (sort(keys(%{$self->{data}})))
    {
        my $data = $self->{data}->{$key};
@@ -185,11 +190,15 @@ foreach my $key (sort(keys(%{$self->{data}})))
 	       }
 	   }
        }
+   if ($key=~/\n/) { Carp::croak("Can't write packfile with newlines in the data. Sorry."); }
    print $fh ("$key");
    if (ref($data))
       {
       foreach my $k (sort(keys(%$data)))
          {
+         if ($k=~/\n/ or $data->{$k}=~/\n/) {
+             Carp::croak("Can't write packfile with newlines in the data. Sorry.");
+         }
          print $fh (" $k=$data->{$k}");
          }
       }
