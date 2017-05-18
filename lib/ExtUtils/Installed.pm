@@ -17,29 +17,33 @@ my $DOSISH = ($^O =~ /^(MSWin\d\d|os2|dos|mint)$/);
 require VMS::Filespec if $Is_VMS;
 
 use vars qw($VERSION);
-$VERSION = '2.10';
+$VERSION = '2.11';
 $VERSION = eval $VERSION;
 
 sub _is_prefix {
     my ($self, $path, $prefix) = @_;
     return unless defined $prefix && defined $path;
 
-    if( $Is_VMS ) {
-        $prefix = VMS::Filespec::unixify($prefix);
-        $path   = VMS::Filespec::unixify($path);
-    }
-
-    # Unix path normalization.
-    $prefix = File::Spec->canonpath($prefix);
-
-    return 1 if substr($path, 0, length($prefix)) eq $prefix;
-
     if ($DOSISH) {
-        $path =~ s|\\|/|g;
-        $prefix =~ s|\\|/|g;
-        return 1 if $path =~ m{^\Q$prefix\E}i;
+        s!\\!/!g for $path, $prefix;
     }
-    return(0);
+
+    $path= File::Spec->canonpath($path);
+    $prefix= File::Spec->canonpath($prefix);
+
+    my ($path_vol, $path_dir, $path_file)= File::Spec->splitpath($path,"no_file");
+    my ($prefix_vol, $prefix_dir)= File::Spec->splitpath($prefix,"no_file");
+
+    my @path_dir= ($path_vol, File::Spec->splitdir($path_dir));
+    my @prefix_dir= ($prefix_vol, File::Spec->splitdir($prefix_dir));
+
+    for my $i (0 .. $#prefix_dir) {
+        if ($i > $#path_dir or $path_dir[$i] ne $prefix_dir[$i]) {
+            return 0;
+        }
+    }
+
+    return 1;
 }
 
 sub _is_doc {
@@ -266,7 +270,8 @@ sub directories {
     $self= $self->new(default=>1) if !ref $self;
     my (%dirs);
     foreach my $file ($self->files($module, $type, @under)) {
-        $dirs{dirname($file)}++;
+        my $dirname= dirname($file);
+        $dirs{$dirname}++;
     }
     return sort keys %dirs;
 }

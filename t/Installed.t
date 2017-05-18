@@ -18,7 +18,10 @@ use Test::More tests => 73;
 
 BEGIN { use_ok( 'ExtUtils::Installed' ) }
 
-my $mandirs =  !!$Config{man1direxp} + !!$Config{man3direxp};
+my $mandirs = !!$Config{man1direxp} + !!$Config{man3direxp};
+my $unique_mandirs= ($Config{man1direxp} && $Config{man3direxp}
+                     && $Config{man1direxp} ne $Config{man3direxp}) ? 2 :
+                     ($Config{man1direxp} || $Config{man3direxp})   ? 1 : 0;
 
 # saves having to qualify package name for class methods
 my $ei = bless( {}, 'ExtUtils::Installed' );
@@ -267,7 +270,8 @@ SKIP: {
     skip('no man directory man1dir on this system', 2)
       unless $Config{man1direxp};
     @files = $ei->files('goodmod', 'doc', $Config{man1direxp});
-    is( scalar @files, 1, '... should find doc file under given dir' );
+    is( scalar @files, $mandirs != $unique_mandirs ? 2 : 1,
+        'files() should find doc file under given dir' );
     is( (grep { /foo$/ } @files), 1, '... checking file name' );
 }
 SKIP: {
@@ -292,16 +296,18 @@ is( scalar @dirs, 0, 'directories() should return no dirs if no files found' );
 SKIP: {
     skip('no man directories on this system', 1) unless $mandirs;
     @dirs = $ei->directories('goodmod', 'doc');
-    is( scalar @dirs, $mandirs, '... should find all files files() would' );
+    is( scalar @dirs, $unique_mandirs, '... should find all files files() would' );
 }
 @dirs = $ei->directories('goodmod');
-is( scalar @dirs, 2 + $mandirs, '... should find all files files() would, again' );
-@files = sort map { exists $dirnames{lc($_)} ? $dirnames{lc($_)} : '' } @files;
-is( join(' ', @files), join(' ', @dirs), '... should sort output' );
+is( scalar @dirs, 2 + $unique_mandirs, '... should find all files files() would, again' );
+my %seen;
+@files = sort grep { !$seen{$_}++ }
+         map { exists $dirnames{lc($_)} ? $dirnames{lc($_)} : () } @files;
+is( join(' ', @dirs), join(' ', @files), '... should sort output' );
 
 # directory_tree
 my $expectdirs =
-       ($mandirs == 2) &&
+       ($unique_mandirs == 2) &&
        (dirname($Config{man1direxp}) eq dirname($Config{man3direxp}))
        ? 3 : 2;
 
