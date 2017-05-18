@@ -107,11 +107,16 @@ sub read($;$) {
     my ( $self, $packfile ) = @_;
     $self = tied(%$self) || $self;
 
-    if   ( defined($packfile) ) { $self->{packfile} = $packfile; }
-    else                        { $packfile         = $self->{packfile}; }
-    Carp::croak("No packlist filename specified") if ( !defined($packfile) );
+    if ( defined($packfile) ) {
+        $self->{packfile} = $packfile;
+    } else {
+        $packfile = $self->{packfile};
+    }
+    Carp::croak("No packlist filename specified")
+        unless defined($packfile);
     my $fh = mkfh();
-    open( $fh, "<$packfile" ) || Carp::croak("Can't open file $packfile: $!");
+    open $fh, "<$packfile"
+        or Carp::croak("Can't open file $packfile: $!");
     $self->{data} = {};
     my ($line);
     while ( defined( $line = <$fh> ) ) {
@@ -130,8 +135,7 @@ sub read($;$) {
                 $key = Cwd::realpath($newpath);
             }
         }
-        $key =~
-          s!/\./!/!g;    # Some .packlists have spurious '/./' bits in the paths
+        $key =~ s!/\./!/!g; # Some .packlists have spurious '/./' bits in the paths
         $self->{data}->{$key} = $data;
     }
     close($fh);
@@ -145,13 +149,16 @@ sub write($;$) {
         $fh = $packfile;
     }
     else {
-        if   ( defined($packfile) ) { $self->{packfile} = $packfile; }
-        else                        { $packfile         = $self->{packfile}; }
+        if ( defined($packfile) ) {
+            $self->{packfile} = $packfile;
+        } else {
+            $packfile = $self->{packfile};
+        }
         Carp::croak("No packlist filename specified")
-          if ( !defined($packfile) );
+          unless defined($packfile);
         $fh = mkfh();
-        open( $fh, ">$packfile" )
-          || Carp::croak("Can't open file $packfile: $!");
+        open $fh, ">$packfile"
+            or Carp::croak("Can't open file $packfile: $!");
     }
     foreach my $key ( sort( keys( %{ $self->{data} } ) ) ) {
         my $data = $self->{data}->{$key};
