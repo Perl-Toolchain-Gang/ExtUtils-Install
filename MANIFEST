@@ -6,8 +6,6 @@ lib/ExtUtils/Packlist.pm
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
-META.json
-META.yml
 README
 t/can_write_dir.t
 t/Install.t
