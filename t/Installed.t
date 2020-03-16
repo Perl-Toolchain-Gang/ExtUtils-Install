@@ -228,12 +228,29 @@ my $fake_mod_dir = File::Spec->catdir(cwd(), 'auto', 'FakeMod');
     );
     isa_ok( $realei, 'ExtUtils::Installed' );
     isa_ok( $realei->{Perl}{packlist}, 'ExtUtils::Packlist' );
-    ok( exists $realei->{FakeMod}, 
+    ok( exists $realei->{FakeMod},
         'new() with extra_libs should find modules with .packlists');
-    
+
     #{ use Data::Dumper; local $realei->{':private:'}{Config};
     #  warn Dumper($realei); }
-    
+
+    isa_ok( $realei->{FakeMod}{packlist}, 'ExtUtils::Packlist' );
+    is( $realei->{FakeMod}{version}, '1.1.1',
+	'... should find version in modules' );
+}
+
+{
+    my $realei = ExtUtils::Installed->new(
+        'extra_libs' => [ 'nonexistent_file' ],
+    );
+    isa_ok( $realei, 'ExtUtils::Installed' );
+    isa_ok( $realei->{Perl}{packlist}, 'ExtUtils::Packlist' );
+    ok( exists $realei->{FakeMod},
+        'new() with extra_libs (nonexistent file) should find modules with .packlists');
+
+    #{ use Data::Dumper; local $realei->{':private:'}{Config};
+    #  warn Dumper($realei); }
+
     isa_ok( $realei->{FakeMod}{packlist}, 'ExtUtils::Packlist' );
     is( $realei->{FakeMod}{version}, '1.1.1',
 	'... should find version in modules' );
