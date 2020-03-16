@@ -14,7 +14,7 @@ use File::Path;
 use File::Basename;
 use File::Spec;
 
-use Test::More tests => 73;
+use Test::More qw(no_plan); # tests => 73;
 
 BEGIN { use_ok( 'ExtUtils::Installed' ) }
 
@@ -32,6 +32,10 @@ ok( $ei->_is_prefix('foo/bar', 'foo'),
         '_is_prefix() should match valid path prefix' );
 ok( !$ei->_is_prefix('\foo\bar', '\bar'),
         '... should not match wrong prefix' );
+ok( ! defined $ei->_is_prefix( undef, 'foo' ),
+    '_is_prefix() needs two defined arguments' );
+ok( ! defined $ei->_is_prefix( 'foo/bar', undef ),
+    '_is_prefix() needs two defined arguments' );
 
 # _is_type
 ok( $ei->_is_type(0, 'all'), '_is_type() should be true for type of "all"' );
