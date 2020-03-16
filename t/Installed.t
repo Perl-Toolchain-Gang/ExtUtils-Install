@@ -14,7 +14,7 @@ use File::Path;
 use File::Basename;
 use File::Spec;
 
-use Test::More qw(no_plan); # tests => 73;
+use Test::More tests => 82;
 
 BEGIN { use_ok( 'ExtUtils::Installed' ) }
 
@@ -360,6 +360,13 @@ is( ${ $ei->packlist('yesmod') }, 102,
 is( $ei->version('yesmod'), 101,
         'version() should report installed mod version' );
 
+my $string = '';
+open (my $DUMP, '>', \$string) or die("Unable to open scalar ref for writing");
+my $old_fh = select($DUMP);
+ok( $ei->debug_dump('yesmod'), 'debug_dump() returned true value' );
+close $DUMP or die("Unable to close scalar ref after writing");
+select($old_fh);
+like($string, qr/bless.*ExtUtils::Installed/s, "ExtUtils::Installed object dumped");
 
 package Fakepak;
 
