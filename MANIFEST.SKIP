@@ -17,7 +17,7 @@ make_from_core.sh
 \bpm_to_blib$
 \.gz$
 \bblibdirs\.ts$         # 6.18 through 6.25 generated this
-\MYMETA.*$
+\bMYMETA.*$
 
 # Avoid Module::Build generated and utility files.
 \bBuild$
