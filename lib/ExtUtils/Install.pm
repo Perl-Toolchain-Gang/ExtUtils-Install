@@ -1191,7 +1191,7 @@ sub pm_to_blib {
         }
         if ($need_filtering) {
             run_filter($pm_filter, $from, $to);
-            print "$pm_filter <$from >$to\n";
+            print "$pm_filter <$from >$to\n" unless $INSTALL_QUIET;
         } else {
             _copy( $from, $to );
             print "cp $from $to\n" unless $INSTALL_QUIET;
