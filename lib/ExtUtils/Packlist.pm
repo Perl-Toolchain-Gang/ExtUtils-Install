@@ -46,6 +46,7 @@ sub __find_relocations
     while (my ($raw_key, $raw_val) = each %Config) {
 	my $exp_key = $raw_key . "exp";
 	next unless exists $Config{$exp_key};
+	next unless defined $raw_val;
 	next unless $raw_val =~ m!\.\.\./!;
 	$paths{$Config{$exp_key}}++;
     }
